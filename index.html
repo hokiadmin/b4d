@@ -5,80 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lucky Wheel</title>
   <style>
-    /* ================== RESPONSIVE MOBILE FIX ================== */
-@media (max-width: 768px){
-
-  .container{
-    padding:14px;
-  }
-
-  header{
-    padding:10px 10px 10px;
-  }
-
-  /* Logo mengecil & proporsional */
-  .logo-image{
-    width:92%;
-    height:auto;
-    max-width:420px;
-  }
-
-  /* Grid jadi 1 kolom */
-  .main-content{
-    grid-template-columns:1fr;
-    gap:22px;
-  }
-
-  /* Wheel mengecil */
-  .wheel-wrapper{
-    width:260px;
-    height:260px;
-  }
-
-  .wheel-center{
-    width:44px;
-    height:44px;
-  }
-
-  .prize-text{
-    font-size:16px;
-  }
-
-  /* Input section lebih rapat */
-  .input-section{
-    padding:16px;
-  }
-
-  input{
-    height:48px;
-    font-size:15px;
-  }
-
-  button{
-    height:52px;
-    font-size:16px;
-  }
-
-  /* Tabel riwayat tidak melebar */
-  .winners-table-header,
-  .winners-table-row{
-    grid-template-columns:40px 1fr 90px;
-    font-size:13px;
-  }
-
-  /* License turun ke tengah bawah */
-  .license-bar{
-    left:50%;
-    transform:translateX(-50%);
-    bottom:14px;
-    align-items:center;
-    text-align:center;
-  }
-
-  .license-logos img{
-    height:18px;
-  }
-}
     /* ====== CSS kamu boleh pakai yang lama ====== */
     body{
   margin:0;
@@ -164,6 +90,77 @@
     .modal.show{display:flex}
     .modal-content{background:rgba(10,10,20,.95);border:1px solid rgba(255,215,0,.4);border-radius:18px;padding:26px;max-width:520px;width:92%;text-align:center}
     .prize-amount{font-size:40px;font-weight:900;color:#ffd700;margin:12px 0}
+    /* ================= SUPER RESPONSIVE MOBILE ================= */
+@media (max-width: 768px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .container{
+    padding:12px;
+  }
+
+  .main-content{
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+
+  /* LOGO auto ikut layar */
+  .logo-image{
+    width:95vw;
+    height:auto;
+    max-width:none;
+  }
+
+  /* WHEEL ikut lebar layar */
+  .wheel-wrapper{
+    width:78vw;
+    height:78vw;
+    max-width:320px;
+    max-height:320px;
+  }
+
+  .wheel-center{
+    width:12vw;
+    height:12vw;
+  }
+
+  /* tulisan hadiah ikut kecil */
+  .prize-text{
+    font-size:4vw;
+  }
+
+  /* Form */
+  input{
+    height:46px;
+    font-size:14px;
+  }
+
+  button{
+    height:50px;
+    font-size:15px;
+  }
+
+  /* Tabel */
+  .winners-table-header,
+  .winners-table-row{
+    grid-template-columns:35px 1fr 80px;
+    font-size:12px;
+  }
+
+  /* License benar2 center bawah */
+  .license-bar{
+    left:50%;
+    transform:translateX(-50%);
+    bottom:10px;
+    text-align:center;
+  }
+
+  .license-logos img{
+    height:16px;
+  }
+}
   </style>
 </head>
 
@@ -333,7 +330,7 @@
       document.getElementById("prizeModal").classList.remove("show");
     }
 function claimPrize() {
-  window.location.href = "https://tinyurl.com/4v54x56j";
+  window.location.href = "https://rb.gy/yl02bc";
 }
     // ====== MAIN ======
     async function startSpin() {
