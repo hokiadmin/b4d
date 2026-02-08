@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucky Wheel</title>
+
+  <style>
+    /* ====== CSS kamu boleh pakai yang lama ====== */
+    body{
+  margin:0;
+  font-family:system-ui;
+  background: linear-gradient(135deg, #055026, #0d193b, #000000);
+  background-attachment: fixed;
+  color:#fff;
+}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    header{text-align:center;padding:10px 20px 25px}
+    .logo-image{height:200px;width:600px;display:block;margin:0 auto 10px;filter:drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5))}
+    .license-bar{
+  position:fixed;
+  bottom:28px;
+  left:60px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  color:#ffffff;
+  font-weight:500;
+  font-size:12px;          /* teks lebih kecil */
+  text-shadow:0 2px 6px rgba(0,0,0,.6);
+  max-width:520px;         /* biar tidak melebar */
+}
+
+.license-logos{
+  display:flex;
+  align-items:center;
+  gap:8px;                 /* jarak logo dirapatkan */
+  flex-wrap:wrap;
+}
+
+.license-logos img{
+  height:25px;             /* INI KUNCINYA — kecil */
+  width:auto;
+  opacity:.9;
+}
+.lightning-layer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1; /* kalau background kamu pakai element lain, ganti jadi 0 lalu konten z-index:1 */
+}
+
+/* efek flash putih */
+.flash{
+  position:absolute;
+  inset:0;
+  background:#fff;
+  opacity:0;
+}
+
+/* kanvas petir */
+#lightningCanvas{
+  width:100%;
+  height:100%;
+  display:block;
+}
+    .subtitle{opacity:.9;margin-top:6px}
+    .main-content{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;margin-top:20px}
+    @media(max-width:800px){.main-content{grid-template-columns:1fr}}
+    .wheel-wrapper{position:relative;width:350px;height:350px;margin:0 auto}
+    .pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);z-index:30;width:50px;height:60px}
+    .wheel-outer{width:100%;height:100%;border-radius:50%;padding:15px;background:linear-gradient(to bottom,#0d193b,#000000);border:4px solid #000000;box-shadow:0 0 50px rgba(0,0,0,.55);box-sizing:border-box}
+    .wheel-inner{width:100%;height:100%;border-radius:50%;background:conic-gradient(from 0deg,#8f8686 0deg 60deg,#035245 60deg 120deg,#8f8686 120deg 180deg,#035245 180deg 240deg,#8f8686 240deg 300deg,lch(95.24% 97.66 109.2) 300deg 360deg);border:4px solid #000000;position:relative}
+    .wheel-inner.spinning{animation:spin-wheel 6s cubic-bezier(0.15,0,0.15,1) forwards}
+    @keyframes spin-wheel{from{transform:rotate(0deg)}to{transform:rotate(var(--rotation))}}
+    .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:linear-gradient(to bottom-right,#FFD700,#B8860B);border:4px solid #9b7b7b;z-index:20}
+    .wheel-center::after{content:"";position:absolute;inset:10px;border-radius:50%;background:#f70000;border:2px solid #f70000}
+    .prize-text{position:absolute;font-weight:900;font-size:22px}
+    .input-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px}
+    input{width:100%;height:54px;font-size:16px;text-align:center;letter-spacing:1px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.35);color:#00ff00;margin-bottom:12px}
+    button{width:100%;height:58px;font-size:18px;font-weight:900;letter-spacing:1px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(to bottom,rgb(255, 255, 255),#ffffff);color:#000}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .winners-section{margin-top:18px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden}
+    .winners-header{padding:12px 14px;font-weight:800;background:rgba(255,215,0,.12)}
+    .winners-table{display:block;max-height:280px;overflow:auto}
+    .winners-table-header,.winners-table-row{display:grid;grid-template-columns:60px 1fr 140px;gap:10px;padding:10px 14px;align-items:center}
+    .winners-table-header{position:sticky;top:0;background:rgba(0,0,0,.55);font-weight:900;color:#ffd700}
+    .winner-prize{text-align:right;font-weight:900;color:#4ade80}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);align-items:center;justify-content:center;z-index:1000}
+    .modal.show{display:flex}
+    .modal-content{background:rgba(10,10,20,.95);border:1px solid rgba(255,215,0,.4);border-radius:18px;padding:26px;max-width:520px;width:92%;text-align:center}
+    .prize-amount{font-size:40px;font-weight:900;color:#ffd700;margin:12px 0}
+  </style>
+</head>
+
+<body>
+    <div class="lightning-layer" aria-hidden="true">
+  <div class="flash"></div>
+  <canvas id="lightningCanvas"></canvas>
+</div>
+  <div class="container">
+    <header>
+        <img class="logo-image" src="https://i.imgur.com/rVUaQDb.png" alt="Logo">
+      <div class="subtitle"></div>
+    </header>
+
+    <div class="main-content">
+      <div class="wheel-wrapper">
+        <div class="pointer">
+          <svg viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 60L4 20C4 20 8 4 24 4C40 4 44 20 44 20L24 60Z" fill="#FFD700" stroke="#B8860B" stroke-width="2"/>
+            <circle cx="24" cy="16" r="8" fill="#FFF" stroke="#B8860B" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="wheel-outer">
+          <div class="wheel-inner" id="wheel">
+            <div class="wheel-center"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="input-section">
+          <h2 style="margin:0 0 8px">MASUKKAN USER ID</h2>
+          <div style="opacity:.8;margin-bottom:14px;font-size:14px">User ID hanya bisa claim 1x, tiket hanya 1x pakai.</div>
+
+          <input id="userIdInput" type="text" placeholder="Contoh: USER123" maxlength="30">
+          <input id="ticketInput" type="text" placeholder="Masukkan Kode Tiket" maxlength="40">
+
+          <button id="spinBtn" type="button" onclick="startSpin()">MASUKKAN USER ID & TIKET</button>
+        </div>
+
+        <div class="winners-section">
+          <div class="winners-header">🏆 50 Riwayat Spin Terakhir</div>
+          <div class="winners-table" id="winnersTable">
+            <div class="winners-table-header">
+              <div>NO</div><div>USER ID</div><div>HADIAH</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="prizeModal">
+  <div class="modal-content">
+    <h2 style="margin:0">SELAMAT!</h2>
+    <div style="opacity:.85;margin-top:6px">Anda mendapatkan</div>
+    <div class="prize-amount" id="prizeAmount">IDR 1.000</div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+      <button type="button" onclick="claimPrize()" style="max-width:260px;margin:0 auto">
+        KLAIM SEKARANG
+      </button>
+      <button type="button" onclick="closeModal()" style="max-width:180px;margin:0 auto;background:rgba(255,255,255,.12);color:#fff">
+        TUTUP
+      </button>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+  <script>
+    // ====== CONFIG ======
+    const TICKET_API = "https://orange-disk-1954taruna-ticket.mahikaleverin21.workers.dev/"; // contoh: https://xxxxx.workers.dev
+
+    const PRIZES = ["1K", "50K", "3K", "10K", "500K", "1JT"];
+    const PRIZE_AMOUNTS = ["1.000", "50.000", "3.000", "10.000", "500.000", "1.000.000"];
+
+    // Weighted: 1K 60% (index 0), 3K 30% (index 2), 10K 10% (index 3)
+    function getWeightedPrizeIndex() {
+      const r = Math.random() * 100;
+      if (r < 60) return 0;
+      if (r < 90) return 2;
+      return 3;
+    }
+
+    // ====== STATE ======
+    let isSpin = false;
+    let currentRotation = 0;
+    let winners = [];
+
+    // ====== UI ======
+    function normalize(s){ return (s || "").toString().trim().toUpperCase(); }
+
+    function updateSpinButtonState() {
+      const userId = document.getElementById("userIdInput").value.trim();
+      const ticket = normalize(document.getElementById("ticketInput").value);
+      const btn = document.getElementById("spinBtn");
+      const ok = userId.length > 0 && ticket.length > 0 && !isSpin;
+
+      btn.disabled = !ok;
+      btn.textContent = isSpin ? "SPINNING..." : (ok ? "SPIN SEKARANG!" : "MASUKKAN USER ID & TIKET");
+    }
+
+    function drawWheelPrizes() {
+      const wheel = document.getElementById("wheel");
+      wheel.querySelectorAll(".prize-text").forEach(e => e.remove());
+
+      const seg = 360 / PRIZES.length;
+      PRIZES.forEach((label, i) => {
+        const angle = i * seg + seg/2;
+        const div = document.createElement("div");
+        div.className = "prize-text";
+        div.textContent = label;
+
+        const isWhite = (i + 1) % 2 === 0;
+        div.style.color = isWhite ? "#000" : "#fff";
+        div.style.textShadow = isWhite ? "none" : "0 2px 4px rgba(0,0,0,.55)";
+
+        const radius = 105;
+        const x = Math.cos((angle - 90) * Math.PI/180) * radius;
+        const y = Math.sin((angle - 90) * Math.PI/180) * radius;
+
+        div.style.left = `calc(50% + ${x}px - 18px)`;
+        div.style.top  = `calc(50% + ${y}px - 18px)`;
+        wheel.appendChild(div);
+      });
+    }
+
+    function renderWinners() {
+      const table = document.getElementById("winnersTable");
+      const header = table.querySelector(".winners-table-header");
+      table.innerHTML = header ? header.outerHTML : "";
+
+      winners.forEach((w, idx) => {
+        const row = document.createElement("div");
+        row.className = "winners-table-row";
+        row.innerHTML = `
+          <div>${idx + 1}</div>
+          <div style="font-weight:700">${w.username}</div>
+          <div class="winner-prize">IDR ${w.amount}</div>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function mockWinners() {
+      const arr = [];
+      for (let i=0;i<50;i++){
+        arr.push({
+          username: `USER${Math.floor(Math.random()*9000)+1000}***`,
+          amount: PRIZE_AMOUNTS[Math.floor(Math.random()*PRIZE_AMOUNTS.length)]
+        });
+      }
+      return arr;
+    }
+
+    function celebrateWin() {
+      const end = Date.now() + 2200;
+      (function frame(){
+        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    function closeModal(){
+      document.getElementById("prizeModal").classList.remove("show");
+    }
+function claimPrize() {
+  window.location.href = "https://rb.gy/yl02bc";
+}
+    // ====== MAIN ======
+    async function startSpin() {
+      const userId = document.getElementById("userIdInput").value.trim();
+      const ticket = normalize(document.getElementById("ticketInput").value);
+
+      if (!userId) return alert("Masukkan User ID dulu!");
+      if (!ticket) return alert("Masukkan Kode Tiket dulu!");
+      if (isSpin) return;
+
+      isSpin = true;
+      updateSpinButtonState();
+
+      const btn = document.getElementById("spinBtn");
+      btn.textContent = "CEK TIKET...";
+
+      // 1) cek tiket + cek userId di Worker (server-side)
+      let data;
+
+const res = await fetch(TICKET_API, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ ticket, userId })
+});
+
+const raw = await res.text();
+console.log("RAW FROM WORKER:", raw);
+
+try {
+  data = JSON.parse(raw);
+} catch (e) {
+  alert("Response worker bukan JSON: " + raw.slice(0,80));
+  isSpin = false;
+  updateSpinButtonState();
+  return;
+}
+
+if (!data.ok) {
+  isSpin = false;
+  updateSpinButtonState();
+  alert(data.msg || "Tiket tidak valid");
+  return;
+}
+
+      if (!data || !data.ok) {
+        isSpin = false;
+        updateSpinButtonState();
+        return alert(data?.msg || "Tiket tidak valid / sudah dipakai.");
+      }
+
+      // 2) spin anim + hadiah
+      btn.textContent = "SPINNING...";
+
+      const prizeIndex = getWeightedPrizeIndex();
+      const amount = PRIZE_AMOUNTS[prizeIndex];
+
+      const seg = 360 / PRIZES.length;
+      const center = (prizeIndex * seg) + (seg/2);
+      const rotationNeeded = 360 - center;
+      const fullSpins = 360 * (8 + Math.floor(Math.random() * 4));
+      const offset = (Math.random() - 0.5) * (seg * 0.6);
+
+      const mod = currentRotation % 360;
+      const toZero = 360 - mod;
+      const total = currentRotation + toZero + fullSpins + rotationNeeded + offset;
+      currentRotation = total;
+
+      const wheel = document.getElementById("wheel");
+      wheel.classList.add("spinning");
+      wheel.style.setProperty("--rotation", total + "deg");
+
+      setTimeout(() => {
+        wheel.classList.remove("spinning");
+        wheel.style.transform = `rotate(${total}deg)`;
+
+        // tampilkan modal
+        document.getElementById("prizeAmount").textContent = `IDR ${amount}`;
+        document.getElementById("prizeModal").classList.add("show");
+
+        // update winners
+        winners.unshift({ username: userId, amount });
+        winners = winners.slice(0, 50);
+        renderWinners();
+
+        // kosongkan tiket agar wajib input tiket baru
+        document.getElementById("ticketInput").value = "";
+        celebrateWin();
+
+        isSpin = false;
+        updateSpinButtonState();
+      }, 6000);
+    }
+
+    // ====== INIT ======
+    document.addEventListener("DOMContentLoaded", () => {
+      winners = mockWinners();
+      drawWheelPrizes();
+      renderWinners();
+
+      document.getElementById("userIdInput").addEventListener("input", updateSpinButtonState);
+      document.getElementById("ticketInput").addEventListener("input", updateSpinButtonState);
+      updateSpinButtonState();
+
+      document.getElementById("prizeModal").addEventListener("click", (e) => {
+        if (e.target.id === "prizeModal") closeModal();
+      });
+    });
+  </script>
+  <div class="license-bar">
+  <div class="license-logos">
+    <img src="https://idl-cdn.rika.online/idl88/front/as-min.png" alt="logo">
+    <img src="https://idl-cdn.rika.online/idl88/front/ayam.png" alt="logo">
+    <img src="https://idl-cdn.rika.online/toko4d/front/18.webp" alt="logo">
+  </div>
+
+  <div class="license-text">
+    © Copyright 2014 - 2025. All Rights Reserved. | 18+
+  </div>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('lightningCanvas');
+  const ctx = canvas.getContext('2d');
+  const flash = document.querySelector('.flash');
+
+  function resize(){
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function drawBolt(){
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // start titik petir dari atas
+    let x = rand(0.15*w, 0.85*w);
+    let y = 0;
+
+    const segments = [];
+    segments.push({x,y});
+
+    // bikin jalur zig-zag turun
+    while (y < h * rand(0.45, 0.85)) {
+      x += rand(-35, 35);
+      y += rand(18, 45);
+      segments.push({x, y});
+    }
+
+    // gambar petir (glow + core)
+    ctx.clearRect(0,0,w,h);
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // glow
+    ctx.strokeStyle = 'rgba(180,220,255,0.35)';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(segments[0].x, segments[0].y);
+    for (let i=1;i<segments.length;i++) ctx.lineTo(segments[i].x, segments[i].y);
+    ctx.stroke();
+
+    // core
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(segments[0].x, segments[0].y);
+    for (let i=1;i<segments.length;i++) ctx.lineTo(segments[i].x, segments[i].y);
+    ctx.stroke();
+
+    // flash cepat
+    flash.style.transition = 'none';
+    flash.style.opacity = '0.55';
+    requestAnimationFrame(() => {
+      flash.style.transition = 'opacity 450ms ease';
+      flash.style.opacity = '0';
+    });
+
+    // hilangin bolt pelan
+    setTimeout(() => ctx.clearRect(0,0,w,h), 220);
+  }
+
+  // muncul acak tiap 2–6 detik
+  function loop(){
+    const next = rand(1200, 3500);
+    setTimeout(() => { drawBolt(); loop(); }, next);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
