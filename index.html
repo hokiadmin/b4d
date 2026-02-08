@@ -1,13 +1,84 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lucky Wheel</title>
-
   <style>
+    /* ================== RESPONSIVE MOBILE FIX ================== */
+@media (max-width: 768px){
+
+  .container{
+    padding:14px;
+  }
+
+  header{
+    padding:10px 10px 10px;
+  }
+
+  /* Logo mengecil & proporsional */
+  .logo-image{
+    width:92%;
+    height:auto;
+    max-width:420px;
+  }
+
+  /* Grid jadi 1 kolom */
+  .main-content{
+    grid-template-columns:1fr;
+    gap:22px;
+  }
+
+  /* Wheel mengecil */
+  .wheel-wrapper{
+    width:260px;
+    height:260px;
+  }
+
+  .wheel-center{
+    width:44px;
+    height:44px;
+  }
+
+  .prize-text{
+    font-size:16px;
+  }
+
+  /* Input section lebih rapat */
+  .input-section{
+    padding:16px;
+  }
+
+  input{
+    height:48px;
+    font-size:15px;
+  }
+
+  button{
+    height:52px;
+    font-size:16px;
+  }
+
+  /* Tabel riwayat tidak melebar */
+  .winners-table-header,
+  .winners-table-row{
+    grid-template-columns:40px 1fr 90px;
+    font-size:13px;
+  }
+
+  /* License turun ke tengah bawah */
+  .license-bar{
+    left:50%;
+    transform:translateX(-50%);
+    bottom:14px;
+    align-items:center;
+    text-align:center;
+  }
+
+  .license-logos img{
+    height:18px;
+  }
+}
     /* ====== CSS kamu boleh pakai yang lama ====== */
     body{
   margin:0;
@@ -262,7 +333,7 @@
       document.getElementById("prizeModal").classList.remove("show");
     }
 function claimPrize() {
-  window.location.href = "https://rb.gy/yl02bc";
+  window.location.href = "https://tinyurl.com/4v54x56j";
 }
     // ====== MAIN ======
     async function startSpin() {
